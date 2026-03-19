@@ -6,6 +6,8 @@ const TURSO_TOKEN = process.env.TURSO_AUTH_TOKEN   || "";
 const baseUrl = TURSO_URL.replace(/^libsql:\/\//, "https://");
 
 async function sql(query, args = []) {
+  if (!baseUrl) throw new Error("TURSO_DATABASE_URL env var is not set");
+  if (!TURSO_TOKEN) throw new Error("TURSO_AUTH_TOKEN env var is not set");
   const res = await fetch(`${baseUrl}/v2/pipeline`, {
     method: "POST",
     headers: {
