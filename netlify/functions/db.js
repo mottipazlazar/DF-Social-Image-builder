@@ -4,8 +4,11 @@ let _db;
 
 function getDb() {
   if (!_db) {
+    // Force HTTP transport for serverless compatibility (libsql:// → https://)
+    const rawUrl = process.env.TURSO_DATABASE_URL || "";
+    const url = rawUrl.replace(/^libsql:\/\//, "https://");
     _db = createClient({
-      url: process.env.TURSO_DATABASE_URL,
+      url,
       authToken: process.env.TURSO_AUTH_TOKEN,
     });
   }
