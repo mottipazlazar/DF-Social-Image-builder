@@ -132,7 +132,10 @@ function loadGoogleFonts() {
 function wrapText(ctx, text, x, y, maxW, lineH, color, font, shadow, shadowColor, shadowSize, shadowType) {
   ctx.font = font;
   ctx.fillStyle = color;
-  if (shadow) {
+
+  const isSolid = shadow && shadowType === "solid";
+
+  if (shadow && !isSolid) {
     const sz = shadowSize ?? 8;
     ctx.shadowColor = shadowColor || "#1A1A1A";
     ctx.shadowBlur = sz;
@@ -149,6 +152,13 @@ function wrapText(ctx, text, x, y, maxW, lineH, color, font, shadow, shadowColor
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
   }
+
+  if (isSolid) {
+    ctx.strokeStyle = shadowColor || "#1A1A1A";
+    ctx.lineWidth = (shadowSize ?? 8) * 2;
+    ctx.lineJoin = "round";
+  }
+
   const paragraphs = text.split("\n");
   let curY = y;
   for (const para of paragraphs) {
@@ -157,17 +167,23 @@ function wrapText(ctx, text, x, y, maxW, lineH, color, font, shadow, shadowColor
     for (const word of words) {
       const test = row ? row + " " + word : word;
       if (ctx.measureText(test).width > maxW && row) {
+        if (isSolid) ctx.strokeText(row, x, curY);
         ctx.fillText(row, x, curY);
         row = word;
         curY += lineH;
       } else { row = test; }
     }
-    if (row) { ctx.fillText(row, x, curY); curY += lineH; }
+    if (row) {
+      if (isSolid) ctx.strokeText(row, x, curY);
+      ctx.fillText(row, x, curY);
+      curY += lineH;
+    }
   }
   ctx.shadowColor = "transparent";
   ctx.shadowBlur = 0;
   ctx.shadowOffsetX = 0;
   ctx.shadowOffsetY = 0;
+  ctx.lineWidth = 1;
 }
 
 function getLogoXY(posId, W, H, lw, lh, pad) {
@@ -536,7 +552,7 @@ function TextLayerEditor({ layer, index, onChange, onRemove }) {
                 </div>
                 {/* Shadow type */}
                 <div style={{ display: "flex", gap: 6 }}>
-                  {[{l:"Side",v:"side"},{l:"Surround",v:"surround"}].map(opt => (
+                  {[{l:"Side",v:"side"},{l:"Surround",v:"surround"},{l:"Solid",v:"solid"}].map(opt => (
                     <button
                       key={opt.v}
                       onClick={() => update("shadowType", opt.v)}
