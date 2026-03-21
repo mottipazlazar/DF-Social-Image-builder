@@ -112,6 +112,8 @@ const defaultTextLayer = (index) => ({
   align: "left",
   shadow: true,
   shadowColor: "#1A1A1A",
+  shadowSize: 8,
+  shadowType: "side",
   xPct: 6,
   yPct: index === 0 ? 65 : 78,
 });
@@ -127,14 +129,20 @@ function loadGoogleFonts() {
   document.head.appendChild(link);
 }
 
-function wrapText(ctx, text, x, y, maxW, lineH, color, font, shadow, shadowColor) {
+function wrapText(ctx, text, x, y, maxW, lineH, color, font, shadow, shadowColor, shadowSize, shadowType) {
   ctx.font = font;
   ctx.fillStyle = color;
   if (shadow) {
+    const sz = shadowSize ?? 8;
     ctx.shadowColor = shadowColor || "#1A1A1A";
-    ctx.shadowBlur = 8;
-    ctx.shadowOffsetX = 3;
-    ctx.shadowOffsetY = 3;
+    ctx.shadowBlur = sz;
+    if (shadowType === "surround") {
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+    } else {
+      ctx.shadowOffsetX = Math.round(sz * 0.4);
+      ctx.shadowOffsetY = Math.round(sz * 0.4);
+    }
   } else {
     ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
@@ -255,7 +263,7 @@ function drawOnCanvas(canvas, state, logoSrc) {
           maxW = W - x - pad;
         }
 
-        wrapText(ctx, layer.text || "", x, y, Math.max(maxW, 80), lineH, layer.color, fontStr, layer.shadow, layer.shadowColor);
+        wrapText(ctx, layer.text || "", x, y, Math.max(maxW, 80), lineH, layer.color, fontStr, layer.shadow, layer.shadowColor, layer.shadowSize, layer.shadowType);
         ctx.textAlign = "left";
       });
 
@@ -492,24 +500,27 @@ function TextLayerEditor({ layer, index, onChange, onRemove }) {
             </div>
           </div>
           {/* Shadow */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
-            <span style={{ fontSize: 11, fontWeight: 600, color: C.TAUPE }}>Shadow</span>
-            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-              {[{l:"On",v:true},{l:"Off",v:false}].map(opt => (
-                <button
-                  key={opt.l}
-                  onClick={() => update("shadow", opt.v)}
-                  style={{
-                    padding: "4px 12px", borderRadius: 5,
-                    border: `1.5px solid ${layer.shadow === opt.v ? C.HARVEST_GOLD : "#3F6B5530"}`,
-                    background: layer.shadow === opt.v ? "#E5A94D22" : "transparent",
-                    fontSize: 11, color: C.TAUPE, cursor: "pointer",
-                  }}
-                >
-                  {opt.l}
-                </button>
-              ))}
-              {layer.shadow && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: C.TAUPE }}>Shadow</span>
+              <div style={{ display: "flex", gap: 6 }}>
+                {[{l:"On",v:true},{l:"Off",v:false}].map(opt => (
+                  <button
+                    key={opt.l}
+                    onClick={() => update("shadow", opt.v)}
+                    style={{
+                      padding: "4px 12px", borderRadius: 5,
+                      border: `1.5px solid ${layer.shadow === opt.v ? C.HARVEST_GOLD : "#3F6B5530"}`,
+                      background: layer.shadow === opt.v ? "#E5A94D22" : "transparent",
+                      fontSize: 11, color: C.TAUPE, cursor: "pointer",
+                    }}
+                  >{opt.l}</button>
+                ))}
+              </div>
+            </div>
+            {layer.shadow && (
+              <>
+                {/* Shadow color */}
                 <div style={{ display: "flex", gap: 4 }}>
                   {["#1A1A1A","#FFFEF6","#3F6B55","#635752"].map(sc => (
                     <div
@@ -523,8 +534,32 @@ function TextLayerEditor({ layer, index, onChange, onRemove }) {
                     />
                   ))}
                 </div>
-              )}
-            </div>
+                {/* Shadow type */}
+                <div style={{ display: "flex", gap: 6 }}>
+                  {[{l:"Side",v:"side"},{l:"Surround",v:"surround"}].map(opt => (
+                    <button
+                      key={opt.v}
+                      onClick={() => update("shadowType", opt.v)}
+                      style={{
+                        flex: 1, padding: "4px 8px", borderRadius: 5,
+                        border: `1.5px solid ${(layer.shadowType || "side") === opt.v ? C.HARVEST_GOLD : "#3F6B5530"}`,
+                        background: (layer.shadowType || "side") === opt.v ? "#E5A94D22" : "transparent",
+                        fontSize: 11, color: C.TAUPE, cursor: "pointer",
+                      }}
+                    >{opt.l}</button>
+                  ))}
+                </div>
+                {/* Shadow size */}
+                <div>
+                  <div style={labelSt}>Size — {layer.shadowSize ?? 8}px</div>
+                  <input
+                    type="range" min={1} max={40} value={layer.shadowSize ?? 8}
+                    onChange={e => update("shadowSize", +e.target.value)}
+                    style={{ width: "100%", accentColor: C.HARVEST_GOLD }}
+                  />
+                </div>
+              </>
+            )}
           </div>
           {/* Position */}
           <div>
