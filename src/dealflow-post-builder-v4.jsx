@@ -55,6 +55,7 @@ const CANVAS_SIZES = [
   { label: "Facebook Post",   w: 1200, h: 630  },
   { label: "Facebook Cover",  w: 1640, h: 924  },
   { label: "Landmodo",        w: 1200, h: 640  },
+  { label: "DF Website",      w: 1456, h: 901  },
   { label: "Custom",          w: null, h: null  },
 ];
 
