@@ -37,7 +37,7 @@ const BRAND_COLORS = [
   { name: "Harvest Gold", hex: "#E5A94D" },
   { name: "Soft Ivory",   hex: "#F6F4E3" },
   { name: "Dusty Pine",   hex: "#3F6B55" },
-  { name: "Taupe",        hex: "#635752" },
+  { name: "Taupe",        hex: "#48433f" },
   { name: "Lemon Grass",  hex: "#D9CD25" },
   { name: "Black",        hex: "#1A1A1A" },
 ];
